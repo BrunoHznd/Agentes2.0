@@ -61,13 +61,13 @@ def load_agent_config() -> Dict[str, Any]:
     # Configurações de teste de velocidade
     speed_enabled = os.getenv("AGENT_SPEEDTEST", str(cfg.get("speedtest", "1"))).lower() in ("1", "true", "yes")
     try:
-        speed_dl = int(os.getenv("AGENT_SPEEDTEST_DOWNLOAD_BYTES", str(cfg.get("speed_download_bytes", 1024 * 1024))))
+        speed_dl = int(os.getenv("AGENT_SPEEDTEST_DOWNLOAD_BYTES", str(cfg.get("speed_download_bytes", 100 * 1024 * 1024))))
     except Exception:
-        speed_dl = 1024 * 1024
+        speed_dl = 100 * 1024 * 1024
     try:
-        speed_ul = int(os.getenv("AGENT_SPEEDTEST_UPLOAD_BYTES", str(cfg.get("speed_upload_bytes", 512 * 1024))))
+        speed_ul = int(os.getenv("AGENT_SPEEDTEST_UPLOAD_BYTES", str(cfg.get("speed_upload_bytes", 50 * 1024 * 1024))))
     except Exception:
-        speed_ul = 512 * 1024
+        speed_ul = 50 * 1024 * 1024
     return {
         "site": site,
         "agent_name": agent_name,
@@ -303,7 +303,7 @@ def speedtest(server: str, download_bytes: int, upload_bytes: int, token: Option
     try:
         print("  Iniciando teste de download...")
         dl_resp = requests.get(
-            f"{server}/speedtest/download?size={download_bytes}",
+            f"{server}/api/speedtest/download?size={download_bytes}",
             headers=headers,
             timeout=30,
             stream=True
@@ -337,7 +337,7 @@ def speedtest(server: str, download_bytes: int, upload_bytes: int, token: Option
         upload_data = bytes([random.randint(0, 255) for _ in range(upload_bytes)])
         
         ul_resp = requests.post(
-            f"{server}/speedtest/upload",
+            f"{server}/api/speedtest/upload",
             headers=headers,
             data=upload_data,
             timeout=30
@@ -364,7 +364,7 @@ def post_report(server: str, site: str, token: Optional[str], payload: Dict[str,
     
     try:
         response = requests.post(
-            f"{server}/api/report/{site}",
+            f"{server}/api/agents/{site}/report",
             json=payload,
             headers=headers,
             timeout=10
