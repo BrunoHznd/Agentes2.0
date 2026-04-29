@@ -303,24 +303,24 @@ def speedtest(server: str, download_bytes: int, upload_bytes: int, token: Option
     try:
         print("  Iniciando teste de download...")
         dl_resp = requests.get(
-            f"{server}/api/speedtest/download?size={download_bytes}",
+            f"{server}/api/speedtest/download?size_bytes={download_bytes}",
             headers=headers,
-            timeout=30,
+            timeout=60,
             stream=True
         )
         dl_resp.raise_for_status()
         
         # Ler todos os dados para medir a velocidade
-        dl_data = b""
-        for chunk in dl_resp.iter_content(chunk_size=8192):
+        total_bytes = 0
+        for chunk in dl_resp.iter_content(chunk_size=1024*1024):  # 1MB chunks
             if not chunk:
                 break
-            dl_data += chunk
+            total_bytes += len(chunk)
             
         dl_time = time.time() - start_dl
         if dl_time > 0:
-            download_speed = len(dl_data) * 8 / dl_time / 1_000_000  # Mbps
-            print(f"  Download: {download_speed:.2f} Mbps")
+            download_speed = total_bytes * 8 / dl_time / 1_000_000  # Mbps
+            print(f"  Download: {download_speed:.2f} Mbps ({total_bytes / 1024 / 1024:.1f} MB em {dl_time:.2f}s)")
     except Exception as e:
         print(f"  Erro no teste de download: {e}")
     
@@ -332,22 +332,21 @@ def speedtest(server: str, download_bytes: int, upload_bytes: int, token: Option
     start_ul = time.time()
     try:
         print("  Iniciando teste de upload...")
-        # Gerar dados aleatórios para upload
-        import random
-        upload_data = bytes([random.randint(0, 255) for _ in range(upload_bytes)])
+        # Gerar dados para upload (zeros são mais rápidos)
+        upload_data = b"\x00" * upload_bytes
         
         ul_resp = requests.post(
             f"{server}/api/speedtest/upload",
             headers=headers,
             data=upload_data,
-            timeout=30
+            timeout=60
         )
         ul_resp.raise_for_status()
         
         upload_time = time.time() - start_ul
         if upload_time > 0:
             upload_speed = len(upload_data) * 8 / upload_time / 1_000_000  # Mbps
-            print(f"  Upload: {upload_speed:.2f} Mbps")
+            print(f"  Upload: {upload_speed:.2f} Mbps ({len(upload_data) / 1024 / 1024:.1f} MB em {upload_time:.2f}s)")
     except Exception as e:
         print(f"  Erro no teste de upload: {e}")
     
