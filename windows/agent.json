@@ -1,0 +1,14 @@
+{
+  "site": "galpao",
+  "agent_name": "agente-01",
+  "server": "http://localhost:9000",
+  "token": "",
+  "interval_sec": 60,
+  "loop": true,
+  "command_check_interval": 5,
+  "cameras": [],
+  "ping_targets": ["8.8.8.8", "1.1.1.1"],
+  "speedtest": true,
+  "speed_download_bytes": 10485760,
+  "speed_upload_bytes": 5242880
+}
