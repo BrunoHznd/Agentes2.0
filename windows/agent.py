@@ -65,9 +65,9 @@ def load_agent_config() -> Dict[str, Any]:
     except Exception:
         speed_dl = 100 * 1024 * 1024
     try:
-        speed_ul = int(os.getenv("AGENT_SPEEDTEST_UPLOAD_BYTES", str(cfg.get("speed_upload_bytes", 50 * 1024 * 1024))))
+        speed_ul = int(os.getenv("AGENT_SPEEDTEST_UPLOAD_BYTES", str(cfg.get("speed_upload_bytes", 20 * 1024 * 1024))))
     except Exception:
-        speed_ul = 50 * 1024 * 1024
+        speed_ul = 20 * 1024 * 1024
     return {
         "site": site,
         "agent_name": agent_name,

@@ -10,5 +10,5 @@
   "ping_targets": ["8.8.8.8", "1.1.1.1"],
   "speedtest": true,
   "speed_download_bytes": 104857600,
-  "speed_upload_bytes": 52428800
+  "speed_upload_bytes": 20971520
 }
