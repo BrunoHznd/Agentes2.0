@@ -203,12 +203,32 @@ def run_network_test(cfg: Dict[str, Any]) -> Dict[str, Any]:
     
     last_ping_results = ping_results
     
-    # Preparar resultado final
+    # Preparar dados de rede no formato esperado pelo servidor
+    network_data = {}
+    
+    # Adicionar dados de speedtest se disponíveis
+    if speed_result:
+        network_data["download_mbps"] = speed_result.download_mbps
+        network_data["upload_mbps"] = speed_result.upload_mbps
+    
+    # Adicionar pings de 1.1.1.1 e 8.8.8.8 se disponíveis
+    for pr in ping_results:
+        if pr.ip == "1.1.1.1" and pr.reachable:
+            network_data["ping_1_1_1_1_ms"] = pr.avg_latency_ms
+        elif pr.ip == "8.8.8.8" and pr.reachable:
+            network_data["ping_8_8_8_8_ms"] = pr.avg_latency_ms
+    
+    # Preparar resultado final no formato compatível com o servidor
     result = {
-        "agent_info": get_agent_info(cfg),
-        "speed_test": asdict(speed_result) if speed_result else None,
-        "ping_results": [asdict(r) for r in ping_results],
-        "timestamp": datetime.now(timezone.utc).isoformat()
+        "site": cfg.get("site", "default"),
+        "host": get_agent_info(cfg).get("agent_name", "unknown"),
+        "timestamp": datetime.now(timezone.utc).isoformat(),
+        "network": network_data,
+        "cameras": [],  # Cameras serão adicionadas posteriormente se necessário
+        "agent": {
+            "version": "1.0.0",
+            "interval_sec": cfg.get("interval_sec", 60)
+        }
     }
     
     return result
@@ -359,7 +379,7 @@ def post_report(server: str, site: str, token: Optional[str], payload: Dict[str,
     """Send report to the server"""
     headers = {"Content-Type": "application/json"}
     if token:
-        headers["Authorization"] = f"Bearer {token}"
+        headers["X-Agent-Token"] = token
     
     try:
         response = requests.post(
@@ -371,6 +391,7 @@ def post_report(server: str, site: str, token: Optional[str], payload: Dict[str,
         if response.status_code != 200:
             print(f"Erro ao enviar relatório: {response.status_code} - {response.text}")
             return False
+        print(f"Relatório enviado com sucesso! Resposta: {response.json()}")
         return True
     except Exception as e:
         print(f"Erro ao enviar relatório: {e}")
